@@ -1,0 +1,50 @@
+{
+  "name": "Central Library",
+  "manager": {
+    "kind": "manager",
+    "first_name": "Default",
+    "last_name": "Manager",
+    "member_id": 10001,
+    "password": 1234,
+    "education": "Administration"
+  },
+  "books": [
+    {
+      "title": "The Hobbit",
+      "author": "J. R. R. Tolkien",
+      "pages": 310,
+      "publication_year": 1937,
+      "copies": 3
+    },
+    {
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "pages": 432,
+      "publication_year": 1813,
+      "copies": 2
+    }
+  ],
+  "students": [
+    {
+      "kind": "student",
+      "first_name": "Sample",
+      "last_name": "Student",
+      "member_id": 20001,
+      "password": 1234,
+      "major": "Computer Engineering",
+      "signup_date": "2026-01-01",
+      "active": true
+    }
+  ],
+  "pending_students": [],
+  "operators": [
+    {
+      "kind": "operator",
+      "first_name": "Sample",
+      "last_name": "Operator",
+      "member_id": 30001,
+      "password": 1234
+    }
+  ],
+  "borrows": []
+}
