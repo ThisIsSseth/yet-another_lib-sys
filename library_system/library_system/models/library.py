@@ -14,3 +14,4 @@ class Library:
     pending_students: dict[int, Student] = field(default_factory=dict)
     operators: dict[int, Operator] = field(default_factory=dict)
     borrows: list[Borrow] = field(default_factory=list)
+    next_book_id: int = 1

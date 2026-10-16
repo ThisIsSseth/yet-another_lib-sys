@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Book:
+    book_id: int
     title: str
     author: str
     pages: int
@@ -28,7 +29,7 @@ class Book:
 
     def __str__(self) -> str:
         return (
-            f"Title: {self.title} | Author: {self.author} | "
+            f"[ID={self.book_id}] {self.title} | {self.author} | "
             f"Year: {self.publication_year} | Pages: {self.pages} | "
             f"Copies: {self.copies}"
         )

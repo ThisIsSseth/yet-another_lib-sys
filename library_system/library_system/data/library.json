@@ -8,8 +8,10 @@
     "password": 1234,
     "education": "Administration"
   },
+  "next_book_id": 3,
   "books": [
     {
+      "book_id": 1,
       "title": "The Hobbit",
       "author": "J. R. R. Tolkien",
       "pages": 310,
@@ -17,6 +19,7 @@
       "copies": 3
     },
     {
+      "book_id": 2,
       "title": "Pride and Prejudice",
       "author": "Jane Austen",
       "pages": 432,

@@ -12,25 +12,24 @@ class BorrowService:
     def request_book(self, student: Student, book: Book) -> bool:
         if not student.active or book.copies < 1:
             return False
-        if any(b.student.member_id == student.member_id and b.book.title.casefold() == book.title.casefold()
+        if any(b.student.member_id == student.member_id and b.book.book_id == book.book_id
                and (b.is_pending or b.is_currently_borrowed) for b in self._library.borrows):
             return False
         self._library.borrows.append(Borrow(student=student, book=book))
         return True
 
-    def find_request(self, student_id: int, title: str) -> Borrow | None:
-        key = title.strip().casefold()
+    def find_request(self, student_id: int, book_id: int) -> Borrow | None:
         return next((b for b in self._library.borrows
                      if b.student.member_id == student_id
-                     and b.book.title.strip().casefold() == key
+                     and b.book.book_id == book_id
                      and (b.is_pending or b.is_currently_borrowed)), None)
 
-    def approve(self, student_id: int, title: str, operator: Operator) -> bool:
-        borrow = self.find_request(student_id, title)
+    def approve(self, student_id: int, book_id: int, operator: Operator) -> bool:
+        borrow = self.find_request(student_id, book_id)
         return borrow.approve(operator) if borrow else False
 
-    def receive_return(self, student_id: int, title: str, operator: Operator) -> bool:
-        borrow = self.find_request(student_id, title)
+    def receive_return(self, student_id: int, book_id: int, operator: Operator) -> bool:
+        borrow = self.find_request(student_id, book_id)
         return borrow.return_book(operator) if borrow else False
 
     def history_for_student(self, student_id: int) -> list[Borrow]:

@@ -1,4 +1,6 @@
 from library_system.models.library import Library
+from library_system.models.book import Book
+from library_system.models.operator import Operator
 from library_system.services.library_manager import LibraryManager
 from library_system.services.authentication_service import AuthenticationService
 from library_system.utils.session import Session
@@ -33,34 +35,38 @@ class Controller:
                 else:
                     self.session.set_guest()
             elif status == LoginStatus.STUDENT:
-                print("\n1. Search books  2. Request book  0. Logout")
-                choice = self.input.read_int("> ", 0, 2)
+                print("\n1. List books  2. Search books  3. Request book  0. Logout")
+                choice = self.input.read_int("> ", 0, 3)
                 if choice == 0:
                     self.session.logout()
                 elif choice == 1:
+                    self._list_books()
+                elif choice == 2:
                     self._search()
                 else:
-                    title = self.input.read_text("Book title: ")
-                    ok = self.manager.request_book(self.session.student.member_id, title)
+                    book_id = self.input.read_int("Book ID: ", 1, 999999)
+                    ok = self.manager.request_book(self.session.student.member_id, book_id)
                     self.view.message("Request recorded." if ok else "Request failed (check availability, account status, or existing request).")
             elif status == LoginStatus.OPERATOR:
-                print("\n1. Search books  2. Add book  3. Approve request  4. Receive return  0. Logout")
-                choice = self.input.read_int("> ", 0, 4)
+                print("\n1. List books  2. Search books  3. Add book  4. Approve request  5. Receive return  0. Logout")
+                choice = self.input.read_int("> ", 0, 5)
                 if choice == 0:
                     self.session.logout()
                 elif choice == 1:
-                    self._search()
+                    self._list_books()
                 elif choice == 2:
-                    self._add_book()
+                    self._search()
                 elif choice == 3:
+                    self._add_book()
+                elif choice == 4:
                     sid = self.input.read_int("Student ID: ", 10000, 99999)
-                    title = self.input.read_text("Book title: ")
-                    ok = self.manager.approve_borrow_request(self.session.operator, sid, title)
+                    book_id = self.input.read_int("Book ID: ", 1, 999999)
+                    ok = self.manager.approve_borrow_request(self.session.operator, sid, book_id)
                     self.view.message("Request approved." if ok else "Could not approve request.")
                 else:
                     sid = self.input.read_int("Student ID: ", 10000, 99999)
-                    title = self.input.read_text("Book title: ")
-                    ok = self.manager.receive_returned_book(self.session.operator, sid, title)
+                    book_id = self.input.read_int("Book ID: ", 1, 999999)
+                    ok = self.manager.receive_returned_book(self.session.operator, sid, book_id)
                     self.view.message("Book returned." if ok else "Could not record return.")
             elif status == LoginStatus.MANAGER:
                 print("\n1. Approve student signup  2. Add operator  0. Logout")
@@ -74,10 +80,12 @@ class Controller:
                 else:
                     self._add_operator()
             elif status == LoginStatus.GUEST:
-                print("\n1. Search books  0. Logout")
-                choice = self.input.read_int("> ", 0, 1)
+                print("\n1. List books  2. Search books  0. Logout")
+                choice = self.input.read_int("> ", 0, 2)
                 if choice == 0:
                     self.session.logout()
+                elif choice == 1:
+                    self._list_books()
                 else:
                     self._search()
 
@@ -108,6 +116,9 @@ class Controller:
         else:
             self.view.message("Login failed.")
 
+    def _list_books(self):
+        self.view.show_books(self.manager.books.list_all())
+
     def _search(self):
         print("Search by: 1. Title  2. Author  3. Publication year")
         choice = self.input.read_int("> ", 1, 3)
@@ -126,12 +137,14 @@ class Controller:
         pages = self.input.read_int("Pages: ", 1, 5000)
         year = self.input.read_int("Publication year: ", 0, 3000)
         copies = self.input.read_int("Copies: ", 0, 1000)
-        from library_system.models.book import Book
-        ok = self.manager.books.add_book(Book(title, author, pages, year, copies))
-        self.view.message("Book added." if ok else "A book with that title already exists.")
+        book = Book(0, title, author, pages, year, copies)
+        ok = self.manager.books.add_book(book)
+        if ok:
+            self.view.message(f"Book added with ID {book.book_id}.")
+        else:
+            self.view.message("That book ID already exists.")
 
     def _add_operator(self):
-        from library_system.models.operator import Operator
         first = self.input.read_text("First name: ")
         last = self.input.read_text("Last name: ")
         operator_id = self.input.read_int("New operator ID: ", 10000, 99999)

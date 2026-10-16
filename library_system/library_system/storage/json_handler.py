@@ -1,5 +1,4 @@
 import json
-from dataclasses import fields
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -32,12 +31,13 @@ class JsonHandler:
         return {
             "name": lib.name,
             "manager": self._member_to_dict(lib.manager, "manager"),
+            "next_book_id": lib.next_book_id,
             "books": [self._book_to_dict(b) for b in lib.books],
             "students": [self._member_to_dict(s, "student") for s in lib.students.values()],
             "pending_students": [self._member_to_dict(s, "student") for s in lib.pending_students.values()],
             "operators": [self._member_to_dict(o, "operator") for o in lib.operators.values()],
             "borrows": [{
-                "student_id": b.student.member_id, "book_title": b.book.title,
+                "student_id": b.student.member_id, "book_id": b.book.book_id,
                 "loan_period_days": b.loan_period_days,
                 "giver_operator_id": b.giver_operator.member_id if b.giver_operator else None,
                 "receiver_operator_id": b.receiver_operator.member_id if b.receiver_operator else None,
@@ -57,15 +57,19 @@ class JsonHandler:
         return result
 
     def _book_to_dict(self, book: Book) -> dict[str, Any]:
-        return {"title": book.title, "author": book.author, "pages": book.pages,
-                "publication_year": book.publication_year, "copies": book.copies}
+        return {"book_id": book.book_id, "title": book.title, "author": book.author,
+                "pages": book.pages, "publication_year": book.publication_year, "copies": book.copies}
 
     def _library_from_dict(self, raw: dict[str, Any]) -> Library:
         manager_data = raw["manager"]
         manager = Manager(manager_data["first_name"], manager_data["last_name"],
                           manager_data["member_id"], manager_data["password"], manager_data["education"])
         lib = Library(raw["name"], manager)
-        lib.books = [Book(**item) for item in raw.get("books", [])]
+        lib.next_book_id = raw.get("next_book_id", self._infer_next_book_id(raw))
+        for item in raw.get("books", []):
+            book = Book(item["book_id"], item["title"], item["author"], item["pages"],
+                        item["publication_year"], item.get("copies", 1))
+            lib.books.append(book)
         for key, target in (("students", lib.students), ("pending_students", lib.pending_students)):
             for item in raw.get(key, []):
                 student = Student(item["first_name"], item["last_name"], item["member_id"], item["password"],
@@ -76,7 +80,7 @@ class JsonHandler:
             lib.operators[operator.member_id] = operator
         for item in raw.get("borrows", []):
             student = lib.students.get(item["student_id"])
-            book = next((b for b in lib.books if b.title == item["book_title"]), None)
+            book = next((b for b in lib.books if b.book_id == item["book_id"]), None)
             if student is None or book is None:
                 continue
             borrow = Borrow(student, book, item.get("loan_period_days", 5))
@@ -89,3 +93,9 @@ class JsonHandler:
             borrow.real_return_date = date.fromisoformat(item["real_return_date"]) if item.get("real_return_date") else None
             lib.borrows.append(borrow)
         return lib
+
+    @staticmethod
+    def _infer_next_book_id(raw: dict[str, Any]) -> int:
+        """Fallback for older JSON files that predate next_book_id."""
+        ids = [b["book_id"] for b in raw.get("books", []) if isinstance(b.get("book_id"), int)]
+        return max(ids) + 1 if ids else 1

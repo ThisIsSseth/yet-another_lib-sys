@@ -14,16 +14,16 @@ class LibraryManager:
         self.students = StudentService(library)
         self.borrows = BorrowService(library)
 
-    def request_book(self, student_id: int, title: str) -> bool:
+    def request_book(self, student_id: int, book_id: int) -> bool:
         student = self.students.get(student_id)
-        book = self.books.find_by_title(title)
+        book = self.books.find_by_id(book_id)
         return bool(student and book and self.borrows.request_book(student, book))
 
-    def approve_borrow_request(self, operator: Operator, student_id: int, title: str) -> bool:
-        return self.borrows.approve(student_id, title, operator)
+    def approve_borrow_request(self, operator: Operator, student_id: int, book_id: int) -> bool:
+        return self.borrows.approve(student_id, book_id, operator)
 
-    def receive_returned_book(self, operator: Operator, student_id: int, title: str) -> bool:
-        return self.borrows.receive_return(student_id, title, operator)
+    def receive_returned_book(self, operator: Operator, student_id: int, book_id: int) -> bool:
+        return self.borrows.receive_return(student_id, book_id, operator)
 
     def add_operator(self, operator: Operator) -> bool:
         if operator.member_id in self.library.operators:
