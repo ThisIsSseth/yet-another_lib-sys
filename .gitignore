@@ -1,0 +1,5 @@
+# SQLite databases are runtime artifacts, not source files.
+library_system/library_system/data/*.db
+library_system/library_system/data/*.db-journal
+library_system/library_system/data/*.db-wal
+library_system/library_system/data/*.db-shm
